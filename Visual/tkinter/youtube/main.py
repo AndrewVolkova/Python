@@ -17,6 +17,9 @@ from settings import *
 # непосредственно библиотека для скачивания файлов с ютуба
 from pytube import YouTube
 
+import sys
+import os
+
 
 class App(ctk.CTk):
     def __init__(self):
@@ -32,6 +35,8 @@ class App(ctk.CTk):
         # запрещение изменения размеров окна
         self.resizable(False, False)
 
+        self.iconbitmap(self.resource_path("youtube.ico"))
+      
         # конфигурация сетки расположения
         # создаем сетку с 1 колнкой и 3-мя строками с разными весами
         self.columnconfigure(0, weight=1)
@@ -74,7 +79,6 @@ class App(ctk.CTk):
 
         self.mainloop()
 
-           
     # функция отвечающая за обновление данных о звуковых дорожках в запрашиваемом файле
     def update_combobox(self, *args):
         if self.audio_codecs:
@@ -105,6 +109,11 @@ class App(ctk.CTk):
         self.loading_progress.set(pct_completed/100)
         
         # print(f"Status: {round(pct_completed, 2)} %")
+
+    # Необходимо для смены путей поиска иконки для title
+    def resource_path(self, relative_path):
+        base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+        return os.path.join(base_path, relative_path)
 
 class FrameWidgetsUrl(ctk.CTkFrame):
     def __init__(self, parent):
@@ -278,5 +287,12 @@ if __name__ == '__main__':
 
 # компилируем
 # python -m PyInstaller -F main.py --onefile --collect-all customtkinter -w
-# --onefile - указыаем что нужн один файл, т.е. exe
+# python -m PyInstaller -F --name=youtube --onefile main.py --collect-all customtkinter -w
+# --onefile - указываем что нужн один файл, т.е. exe
 # --collect-all customtkinter - указываем чтобы все что относится к customtkinter, включая темы, было добавлено в exe
+# -w указываем что приложение следует запустить в режиме без консоли
+# --icon=<путь к иконке>, меняем на свою иконку для exe файла
+
+# компилируем из спецификации
+# python -m PyInstaller .\main.spec
+# python -m PyInstaller .\youtube.spec
