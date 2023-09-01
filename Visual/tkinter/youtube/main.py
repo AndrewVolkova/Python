@@ -1,40 +1,63 @@
+# документация по customtkinter https://customtkinter.tomschimansky.com/documentation/
 
-# from tkinter import ttk
-import threading
-
+# отсюда берем элемент сепаратор или линию
+from distutils import text_file
+from tkinter import ttk
+# отсюда берем все виджеты для GUI
 import customtkinter as ctk
 
+# этим мы воспользуемся для освобождения процесса, 
+# чтобы не блокировался процесс отрисовки. Запустим поток для долгой операции
+import threading
+
+# тут мы храним основные наши настройки для визуализации
 from settings import *
 
+# непосредственно библиотека для скачивания файлов с ютуба
 from pytube import YouTube
 
 
 class App(ctk.CTk):
     def __init__(self):
         super().__init__(fg_color=LIGHT_GRAY)
+        # создание обьекта GUI customtkinter
+        # и основные настройки
+        # tilte окна
         self.title("Youtube")
+        # размер
         self.geometry('800x200')
+        # привязка слежения нажатия клавиши esc для всего окна
         self.bind('<Escape>', lambda event: self.quit())
+        # запрещение изменения размеров окна
         self.resizable(False, False)
 
-        # layout
+        # конфигурация сетки расположения
+        # создаем сетку с 1 колнкой и 3-мя строками с разными весами
         self.columnconfigure(0, weight=1)
-        self.rowconfigure((0, 2), weight=3, uniform='b')
+        self.rowconfigure((0, 2), weight=10, uniform='b')
         self.rowconfigure((1), weight=1, uniform='b')
 
-        # vars
+        # создаем связочные переменные
+        # для поля ввода
         self.entry_var = ctk.StringVar(
             value="https://youtu.be/AqRM5_xy4Sc")
+        # для лейбла, где будем указывать название скачиваемого файла
+        self.title_var = ctk.StringVar()
+        # для определения что поменялось выбранное значение из выпадающего списка
         self.combo_selected = ctk.BooleanVar(value=False)
+        # для оповещения, что данные получены
         self.data_received = ctk.BooleanVar(value=False)
-        self.download_button = ctk.BooleanVar(value=False)
+        # для отрисовки прогресса скачки для обьекта progress bar
         self.loading_progress = ctk.DoubleVar(value = 0)
 
-        # data
+        # данные
+        # здесь разместим информацию о доступных звуковых дорожках
         self.audio_codecs = {}
+        # здесь разместим информацию о доступных звуковых дорожках, но сменим ключи и зачения местами
+        # потом пригодится для поиска выбранного id tag дорожки
         self.audio_codecs_t = {}
 
-        # tracing
+        # слежение (tracing)
         self.data_received.trace_add('write', self.update_combobox)
         self.combo_selected.trace_add('write', self.selected_combobox)
       
@@ -67,7 +90,6 @@ class App(ctk.CTk):
     # функция, отвечающая за изменения при выборе звуковой дорожки из выпадающего списка
     def selected_combobox(self, *args):
 
-        self.download_button.set(True)
         self.loading_progress.set(0)
 
         # print(k := self.codec_selection.get())
@@ -91,29 +113,31 @@ class FrameWidgetsUrl(ctk.CTkFrame):
         # layout
         self.rowconfigure(0, weight=1, uniform='a')
         self.rowconfigure(1, weight=1, uniform='a')
+        self.rowconfigure(2, weight=1, uniform='a')
         self.columnconfigure(0, weight=4, uniform='a')
         self.columnconfigure(1, weight=1, uniform='a')
 
-        LabelDescription(self, 'Введите url', 0, 0, 'w', padx=0)
+        LabelDescription(self, 'Введите url', 0, 0, 'w')
         UrlEntry(self, parent.entry_var, 0, 1, 'we', padx=(0, 40))
         ButtonConfirm(self, parent, 'Получить данные',
                       1, 1, sticky='e', padx=(10, 0))
+        LabelTitle(self,parent.title_var,0,2, sticky='w', pady=(10,0))
 
 class FrameWidgetsOptions(ctk.CTkFrame):
     def __init__(self, parent):
         super().__init__(master=parent, fg_color=LIGHT_GRAY)
         # layout
         self.rowconfigure(0, weight=1, uniform='a')
-        self.rowconfigure(1, weight=1, uniform='b')
-        self.rowconfigure(2, weight=1, uniform='b')
-        self.columnconfigure(0, weight=4, uniform='b')
-        self.columnconfigure(1, weight=1, uniform='b')
+        self.rowconfigure(1, weight=1, uniform='a')
+        self.rowconfigure(2, weight=1, uniform='a')
+        self.columnconfigure(0, weight=4, uniform='a')
+        self.columnconfigure(1, weight=1, uniform='a')
         
         LabelDescription(self, 'Опции файла', 0, 0, 'w', padx=0)
 
         self.codec_selection = CodecSelection(
             self, parent.combo_selected, 0, 1, 'we', padx=(0, 40))
-        parent.download_button_obj = ButtonDownload(self, parent, 'Скачать', 1, 1, sticky='e', padx=(10, 0))
+        ButtonDownload(self, parent, 'Скачать', 1, 1, sticky='e', padx=(10, 0))
 
         self.progress_bar = ProgressBar(self, parent.loading_progress, 0, 2)
         
@@ -145,6 +169,12 @@ class LabelDescription(ctk.CTkLabel):
         super().__init__(master=parent, text=text, font=font, text_color=color)
         self.grid(column=column, row=row, sticky=sticky, padx=padx, pady=pady)
 
+class LabelTitle(ctk.CTkLabel):
+    def __init__(self, parent, textvariable, column, row, sticky='we', padx=0, pady=(0, 3), color=BLUE):
+        font = ctk.CTkFont(family=FONT, size=LABEL_FONT_SIZE, weight='bold')
+        super().__init__(master=parent, textvariable = textvariable, font=font, text_color=color)
+        self.grid(column=column, row=row, sticky=sticky, padx=padx, pady=pady)
+
 class UrlEntry(ctk.CTkEntry):
     def __init__(self, parent, textvariable, column, row, sticky='we', padx=0, pady=0):
         super().__init__(master=parent, textvariable=textvariable,
@@ -169,6 +199,7 @@ class ButtonConfirm(ctk.CTkButton):
         audio_codecs = self.download_audio_streams(url)
         self.parent.audio_codecs.update(audio_codecs)
         self.parent.data_received.set(True)
+        self.parent.title_var.set(self.parent.youtube_object.title)
 
     def on_submit(self):
         self.parent.frame_selection.hide()
@@ -202,7 +233,6 @@ class ButtonDownload(ctk.CTkButton):
         thread.start()
         
         thread.join(timeout=0)
-
 
 class CodecSelection(ctk.CTkComboBox):
     def __init__(self, parent, textvariable, column, row, sticky='we', padx=0, pady=0):
@@ -245,4 +275,7 @@ class ProgressBar(ctk.CTkProgressBar):
 if __name__ == '__main__':
     App()
 
-
+# компилируем
+# python -m PyInstaller -F main.py --onefile --collect-all customtkinter -w
+# --onefile - указыаем что нужн один файл, т.е. exe
+# --collect-all customtkinter - указываем чтобы все что относится к customtkinter, включая темы, было добавлено в exe
