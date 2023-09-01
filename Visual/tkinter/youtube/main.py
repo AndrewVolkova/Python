@@ -1,7 +1,8 @@
 # документация по customtkinter https://customtkinter.tomschimansky.com/documentation/
+# pip install pytube
+# pip install customtkinter
 
 # отсюда берем элемент сепаратор или линию
-from distutils import text_file
 from tkinter import ttk
 # отсюда берем все виджеты для GUI
 import customtkinter as ctk
@@ -42,7 +43,7 @@ class App(ctk.CTk):
         self.entry_var = ctk.StringVar(
             value="https://youtu.be/AqRM5_xy4Sc")
         # для лейбла, где будем указывать название скачиваемого файла
-        self.title_var = ctk.StringVar()
+        self.title_var = ctk.StringVar(value='')
         # для определения что поменялось выбранное значение из выпадающего списка
         self.combo_selected = ctk.BooleanVar(value=False)
         # для оповещения, что данные получены
